@@ -34,7 +34,7 @@ public class gui4 extends JFrame {
     private double prevZoomFactor = 1.0;
     private double zoomFactor = 1.0;
 
-    private JButton hamburgerButton; // Hamburger icon button added
+    private JButton hamburgerButton;
 
     private static String getDefaultValue(String type) {
         switch (type) {
@@ -68,7 +68,7 @@ public class gui4 extends JFrame {
         JPanel controlsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         // === Hamburger Icon Button ===
-        hamburgerButton = new JButton("\u2630"); // Unicode for hamburger icon ☰
+        hamburgerButton = new JButton("\u2630");
         hamburgerButton.setFont(new Font("SansSerif", Font.BOLD, 18));
         hamburgerButton.setToolTipText("Show Block Names");
         hamburgerButton.setMargin(new Insets(2, 8, 2, 8));
@@ -129,7 +129,6 @@ public class gui4 extends JFrame {
         blockScrollPane.setPreferredSize(new Dimension(250, 100));
         topPanel.add(blockScrollPane);
 
-        // Initialize block library after all components are created
         populateBlockLibrary();
 
         add(topPanel, BorderLayout.NORTH);
@@ -205,7 +204,6 @@ public class gui4 extends JFrame {
 
     // New method to show dialog with editable input values for all blocks
     private void showBlockNamesDialog() {
-        // Calculate total inputs
         int totalInputs = 0;
         for (FunctionBlock fb : functionBlocks) {
             totalInputs += fb.template.inputCount;
@@ -221,7 +219,6 @@ public class gui4 extends JFrame {
                 data[row][0] = fb.name;
                 data[row][1] = "Input " + (i + 1);
                 data[row][2] = fb.template.inputTypes[i];
-                // Check if connected
                 boolean connected = false;
                 String value = fb.inputValues[i];
                 for (Connection c : connections) {
@@ -236,11 +233,9 @@ public class gui4 extends JFrame {
             }
         }
 
-        // Create oldData for reverting invalid changes
         Object[][] oldData = new Object[totalInputs][4];
         for(int i=0; i<data.length; i++) oldData[i] = data[i].clone();
 
-        // Custom table model to make only Value column editable for unconnected inputs
         class InputTableModel extends javax.swing.table.DefaultTableModel {
             public InputTableModel(Object[][] data, Object[] columnNames) {
                 super(data, columnNames);
@@ -249,7 +244,6 @@ public class gui4 extends JFrame {
             @Override
             public boolean isCellEditable(int row, int column) {
                 if (column == 3) {
-                    // Determine if this row's input is connected
                     int currentRow = 0;
                     for (FunctionBlock fb : functionBlocks) {
                         for (int i = 0; i < fb.template.inputCount; i++) {
@@ -275,15 +269,14 @@ public class gui4 extends JFrame {
         table.setPreferredScrollableViewportSize(new Dimension(600, 400));
         table.setFillsViewportHeight(true);
 
-        // Set custom editor for Value column
+        // Value column
         table.getColumnModel().getColumn(3).setCellEditor(new TypeAwareCellEditor());
 
         JScrollPane scrollPane = new JScrollPane(table);
 
-        // Create custom dialog
         JDialog dialog = new JDialog(this, "Edit Block Input Values", true);
 
-        // Add real-time validation listener
+        //real-time validation listener
         table.getModel().addTableModelListener(e -> {
             if (e.getType() == TableModelEvent.UPDATE && e.getColumn() == 3) {
                 int r = e.getFirstRow();
@@ -291,10 +284,8 @@ public class gui4 extends JFrame {
                 String type = (String) table.getValueAt(r, 2);
                 if (!isValidValue(value, type)) {
                     JOptionPane.showMessageDialog(dialog, "Invalid value for type " + type + ": '" + value + "'", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                    // Revert to old value
                     table.setValueAt(oldData[r][3], r, 3);
                 } else {
-                    // Update oldData
                     oldData[r][3] = value;
                 }
             }
@@ -309,10 +300,9 @@ public class gui4 extends JFrame {
         buttonPanel.add(cancelButton);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        final int[] result = {JOptionPane.CANCEL_OPTION}; // Default to cancel
+        final int[] result = {JOptionPane.CANCEL_OPTION}; 
 
         okButton.addActionListener(e -> {
-            // Validate values for unconnected inputs only
             boolean allValid = true;
             StringBuilder errorMsg = new StringBuilder("Invalid values:\n");
             int r = 0;
@@ -339,7 +329,6 @@ public class gui4 extends JFrame {
             }
             if (!allValid) {
                 JOptionPane.showMessageDialog(dialog, errorMsg.toString(), "Validation Error", JOptionPane.ERROR_MESSAGE);
-                // Do not dispose, keep dialog open
             } else {
                 result[0] = JOptionPane.OK_OPTION;
                 dialog.dispose();
@@ -356,7 +345,6 @@ public class gui4 extends JFrame {
         dialog.setVisible(true);
 
         if (result[0] == JOptionPane.OK_OPTION) {
-            // Update inputValues if all valid
             row = 0;
             for (FunctionBlock fb : functionBlocks) {
                 for (int i = 0; i < fb.template.inputCount; i++) {
@@ -396,20 +384,18 @@ public class gui4 extends JFrame {
             case "char":
                 return value != null && value.length() <= 1;
             case "string":
-                // Accept any value for string, but reject if value is null
                 return value != null;
             case "file":
-                // Accept empty or strings that look like file paths (basic check)
                 return value == null || value.trim().isEmpty() || (value.contains(".") || value.contains("/") || value.contains("\\"));
             case "graph":
             case "Status":
             case "character":
             default:
-                return true; // Accept any value for these types
+                return true; 
         }
     }
 
-    // New method to show dialog for viewing naming history
+    //viewing naming history
     private void showNamingHistoryDialog() {
         StringBuilder historyText = new StringBuilder();
         for (FunctionBlock fb : functionBlocks) {
@@ -433,7 +419,6 @@ public class gui4 extends JFrame {
         for (FunctionBlock block : functionBlocks) {
             if (block.name != null && block.name.toLowerCase().contains(query)) {
                 drawingPanel.searchResults.add(block);
-                // Highlight and scroll to the first match
                 if (!found) {
                     highlightAndScrollToBlock(block);
                     found = true;
@@ -449,7 +434,7 @@ public class gui4 extends JFrame {
     private void highlightAndScrollToBlock(FunctionBlock block) {
         Rectangle bounds = block.getBounds();
 
-        // Convert to zoomed coordinates
+        //zoomed coordinates
         int x = (int) (bounds.x * drawingPanel.zoomFactor + drawingPanel.translateX);
         int y = (int) (bounds.y * drawingPanel.zoomFactor + drawingPanel.translateY);
         int w = (int) (bounds.width * drawingPanel.zoomFactor);
@@ -472,7 +457,6 @@ public class gui4 extends JFrame {
         addTemplate(new BlockTemplate("mff", 1, 1, new String[]{"float"}, new String[]{"graph"}));
         addTemplate(new BlockTemplate("result", 4, 3, new String[]{"float","string","file","graph"}, new String[]{"graph","string","float"}));
 
-        // Add to dropdown
         for (String blockName : blockLibrary.keySet()) {
             blockSelector.addItem(blockName);
         }
@@ -522,7 +506,6 @@ public class gui4 extends JFrame {
         int x = 100 + functionCounter * 60;
         int y = 100 + functionCounter * 40;
         
-        // Apply current zoom factor to new blocks
         int scaledWidth = (int)(block.getPreferredSize().width * zoomFactor);
         int scaledHeight = (int)(block.getPreferredSize().height * zoomFactor);
         block.setBounds(x, y, scaledWidth, scaledHeight);
@@ -595,7 +578,6 @@ public class gui4 extends JFrame {
     
             int typeRes = JOptionPane.showConfirmDialog(this, typePanel, "Select Types", JOptionPane.OK_CANCEL_OPTION);
             if (typeRes == JOptionPane.OK_OPTION) {
-                // Get selected types
                 for (int i = 0; i < inCount; i++) {
                     inTypes[i] = (String) inComboBoxes[i].getSelectedItem();
                 }
@@ -660,7 +642,7 @@ public class gui4 extends JFrame {
 
         DrawingPanel() {
             setPreferredSize(new Dimension(2000, 1200));
-            setLayout(null); // Using absolute positioning for blocks
+            setLayout(null); 
 
             addMouseListener(new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
@@ -725,9 +707,9 @@ public class gui4 extends JFrame {
             addMouseWheelListener(e -> {
                 if (e.isControlDown()) {
                     double factor = e.getWheelRotation() < 0 ? 1.1 : 0.9;
-                    Point focus = e.getPoint(); // Mouse position as zoom center
+                    Point focus = e.getPoint(); 
                     zoom(factor, focus);
-                    e.consume(); // Prevent it from scrolling when zooming
+                    e.consume(); 
                 }
             });
 
@@ -749,15 +731,15 @@ public class gui4 extends JFrame {
 
         private Color getConnectionColor(String type) {
             switch (type) {
-                case "float": return new Color(139, 0, 0); // Dark Red
-                case "integer": return new Color(0, 0, 139); // Dark Blue
-                case "int": return new Color(0, 0, 139); // Dark Blue
-                case "string": return new Color(255, 140, 0); // Dark Orange
-                case "file": return new Color(199, 21, 133); // Medium Violet Red (darker pink)
-                case "graph": return new Color(0, 139, 139); // Dark Cyan
-                case "Status": return new Color(0, 100, 0); // Dark Green
-                case "character": return new Color(184, 134, 11); // Dark Goldenrod (darker yellow)
-                case "char": return new Color(184, 134, 11); // Dark Goldenrod (darker yellow)
+                case "float": return new Color(139, 0, 0); 
+                case "integer": return new Color(0, 0, 139); 
+                case "int": return new Color(0, 0, 139); 
+                case "string": return new Color(255, 140, 0); 
+                case "file": return new Color(199, 21, 133); 
+                case "graph": return new Color(0, 139, 139); 
+                case "Status": return new Color(0, 100, 0); 
+                case "character": return new Color(184, 134, 11); 
+                case "char": return new Color(184, 134, 11); 
                 default: return Color.DARK_GRAY;
             }
         }
@@ -768,7 +750,6 @@ public class gui4 extends JFrame {
             zoomFactor = Math.max(0.1, Math.min(5.0, zoomFactor));
             gui4.this.zoomFactor = zoomFactor;
 
-            // Scale all blocks
             for (FunctionBlock block : functionBlocks) {
                 Point loc = block.getLocation();
                 Dimension size = block.getPreferredSize();
@@ -781,11 +762,9 @@ public class gui4 extends JFrame {
                 block.setBounds(newX, newY, newWidth, newHeight);
             }
 
-            // Resize canvas to fit new content
             updateCanvasSize();
 
-            // Reposition view to keep focus point at same logical location
-            Container parent = getParent(); // should be the JViewport
+            Container parent = getParent(); 
             if (parent instanceof JViewport) {
                 JViewport viewport = (JViewport) parent;
 
@@ -809,12 +788,10 @@ public class gui4 extends JFrame {
             zoomFactor = Math.max(0.1, Math.min(5.0, zoomFactor));
             gui4.this.zoomFactor = zoomFactor;
             
-            // Scale all blocks with zoom
             for (FunctionBlock block : functionBlocks) {
                 Point loc = block.getLocation();
                 Dimension pref = block.getPreferredSize();
                 
-                // Scale position and size
                 int newX = (int)(loc.x * zoomFactor / oldZoomFactor);
                 int newY = (int)(loc.y * zoomFactor / oldZoomFactor);
                 int newWidth = (int)(pref.width * zoomFactor);
@@ -833,11 +810,9 @@ public class gui4 extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Apply transformations for arrows only
             g2.translate(translateX, translateY);
             g2.scale(zoomFactor, zoomFactor);
 
-            // Draw connections
             for (Connection conn : connections) {
                 Point from = getOutputPoint(conn.from, conn.fromIdx);
                 Point to = getInputPoint(conn.to, conn.toIdx);
@@ -872,7 +847,6 @@ public class gui4 extends JFrame {
             Graphics2D gZoom = zoomImage.createGraphics();
             gZoom.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Clear background
             gZoom.setColor(getBackground());
             gZoom.fillRect(0, 0, zoomSize, zoomSize);
 
@@ -882,7 +856,6 @@ public class gui4 extends JFrame {
             double ty = (mousePoint.y / zoomFactor - zoomSize / (2.0 * magnifyScale));
             gZoom.translate(-tx, -ty);
 
-            // Draw blocks in magnifier
             for (FunctionBlock block : functionBlocks) {
                 Rectangle bounds = block.getBounds();
                 Rectangle magnifierBounds = new Rectangle(
@@ -899,7 +872,7 @@ public class gui4 extends JFrame {
                 gZoom.drawString(block.name, magnifierBounds.x + 5, magnifierBounds.y + 15);
             }
 
-            // Draw connections in magnifier
+            //connections in magnifier
             Graphics2D contentG = (Graphics2D) gZoom.create();
             contentG.scale(zoomFactor, zoomFactor);
             for (Connection conn : connections) {
@@ -980,13 +953,11 @@ public class gui4 extends JFrame {
         }
         JLabel output = fb.outputArrows[outputIndex];
         Point p = SwingUtilities.convertPoint(output, output.getWidth(), output.getHeight() / 2, drawingPanel);
-        // Don't apply zoom transformation here since it's applied in paintComponent
         return new Point((int)(p.x / drawingPanel.zoomFactor), (int)(p.y / drawingPanel.zoomFactor));
     }
 
     Point getInputPoint(FunctionBlock fb, int inputIndex) {
         if (inputIndex == -1) {
-            // Status connection to center of block
             Point p = new Point(fb.getX() + fb.getWidth() / 2, fb.getY() + fb.getHeight() / 2);
             return new Point((int)(p.x / drawingPanel.zoomFactor), (int)(p.y / drawingPanel.zoomFactor));
         }
@@ -995,7 +966,6 @@ public class gui4 extends JFrame {
         }
         JLabel input = fb.inputArrows[inputIndex];
         Point p = SwingUtilities.convertPoint(input, 0, input.getHeight() / 2, drawingPanel);
-        // Don't apply zoom transformation here since it's applied in paintComponent
         return new Point((int)(p.x / drawingPanel.zoomFactor), (int)(p.y / drawingPanel.zoomFactor));
     }
 
@@ -1004,7 +974,6 @@ public class gui4 extends JFrame {
         Map<FunctionBlock, Set<FunctionBlock>> adj = new HashMap<>();
         Map<FunctionBlock, Integer> inDegree = new HashMap<>();
 
-        // Build adjacency list and in-degree map
         for (FunctionBlock fb : functionBlocks) {
             adj.put(fb, new HashSet<>());
             inDegree.put(fb, 0);
@@ -1017,7 +986,6 @@ public class gui4 extends JFrame {
             }
         }
 
-        // Initialize queue with all nodes having in-degree 0
         Queue<FunctionBlock> q = new LinkedList<>();
         Set<FunctionBlock> visited = new HashSet<>();
 
@@ -1030,7 +998,7 @@ public class gui4 extends JFrame {
 
         List<FunctionBlock> order = new ArrayList<>();
 
-        // Kahn’s Algorithm (extended for disconnected graphs)
+        // Kahn’s Algorithm 
         while (!q.isEmpty()) {
             FunctionBlock curr = q.poll();
             order.add(curr);
@@ -1076,7 +1044,7 @@ public class gui4 extends JFrame {
             }
         }
 
-        // === Fallback: ensure all blocks are included ===
+        // === Fallback ===
         for (FunctionBlock fb : functionBlocks) {
             if (!order.contains(fb)) {
                 order.add(fb);
@@ -1137,10 +1105,9 @@ public class gui4 extends JFrame {
         private boolean success;
 
         public StatusBlock(String name, BlockTemplate template) {
-            super(name, template);  // match the constructor
+            super(name, template);  
         }
 
-        // No @Override, since FunctionBlock has no execute()
         public void execute() {
             success = Math.random() > 0.5;
             System.out.println("StatusBlock " + name + " result: " 
@@ -1172,8 +1139,8 @@ public class gui4 extends JFrame {
         private static final long serialVersionUID = 1L;
 
         String name;
-        String originalName; // New field to store original name
-        List<String> nameHistory; // List to store naming history
+        String originalName; 
+        List<String> nameHistory; 
         String[] inputValues;
         JButton[] outputDots;
         transient BlockTemplate template;
@@ -1199,7 +1166,7 @@ public class gui4 extends JFrame {
         FunctionBlock(String name, BlockTemplate template) {
             super();
             this.name = name;
-            this.originalName = name; // Initialize originalName with initial name
+            this.originalName = name; 
             this.nameHistory = new ArrayList<>();
             this.nameHistory.add(name);
             this.template = template;
@@ -1238,7 +1205,7 @@ public class gui4 extends JFrame {
                                 return;
                             }
 
-                            // Check if input already connected
+                            // Checks if input already connected
                             boolean inputAlreadyConnected = false;
                             for (Connection conn : connections) {
                                 if (conn.to == FunctionBlock.this && conn.toIdx == idx) {
@@ -1296,11 +1263,10 @@ public class gui4 extends JFrame {
             this.add(ioWrapper, BorderLayout.CENTER);
             this.add(outputPanel, BorderLayout.EAST);
 
-            // Add mouse listener for status connections (to the entire block)
+            // Adding mouse listener for status connections (to the entire block)
             addMouseListener(new MouseAdapter() {
                 public void mouseReleased(MouseEvent e) {
                     if (dragSource != null) {
-                        // Check if the drag is from a Status output
                         boolean isStatusOutput = false;
                         if (dragSourceOutputIndex != -1 && dragSource.template != null &&
                             dragSourceOutputIndex < dragSource.template.outputTypes.length) {
@@ -1309,7 +1275,6 @@ public class gui4 extends JFrame {
 
                         if (isStatusOutput) {
                             // Create status connection to the entire block
-                            // Check if already connected via status to avoid duplicates
                             boolean alreadyConnected = false;
                             for (Connection conn : connections) {
                                 if (conn.from == dragSource && conn.to == FunctionBlock.this && conn.toIdx == -1) {
@@ -1345,7 +1310,6 @@ public class gui4 extends JFrame {
                     renameFunctionBlock(oldName, newName);
                     FunctionBlock.this.name = newName;
                     FunctionBlock.this.nameHistory.add(newName);
-                    // Keep originalName unchanged to track original
                     setBorder(BorderFactory.createTitledBorder(newName));
                     repaint();
                 }
@@ -1364,7 +1328,7 @@ public class gui4 extends JFrame {
                             newInputTypes[i] = template.inputTypes[i];
                         }
                         for (int i = template.inputTypes.length; i < newCount; i++) {
-                            newInputTypes[i] = "float"; // default type
+                            newInputTypes[i] = "float"; 
                         }
                         
                         template.inputCount = newCount;
@@ -1573,7 +1537,7 @@ public class gui4 extends JFrame {
             for (int i = 0; i < order.size(); i++) {
                 writer.println((i + 1) + ". " + order.get(i).originalName);
             }
-            writer.println(); // blank line for separation
+            writer.println(); 
 
             // === Write Each Function Block ===
             for (FunctionBlock fb : order) {
@@ -1586,11 +1550,11 @@ public class gui4 extends JFrame {
                     writer.println("#status " + fb.originalName);
                 }
 
-                // Inputs (either connection or default)
+                // Inputs 
                 for (int i = 0; i < fb.template.inputCount; i++) {
                     String inputValue = "";
 
-                    // First try: connection input
+                    //connection input
                     for (Connection c : connections) {
                         if (c.to == fb && c.toIdx == i) {
                             inputValue = "$" + c.from.originalName + ".output" + (c.fromIdx + 1);
@@ -1598,7 +1562,7 @@ public class gui4 extends JFrame {
                         }
                     }
 
-                    // If no connection found, use the input value (which is the default or user-set)
+                    // If no connection found, use the input value 
                     if (inputValue.isEmpty()) {
                         inputValue = fb.inputValues[i];
                     }
@@ -1613,7 +1577,7 @@ public class gui4 extends JFrame {
             }
 
             // === Print All Connections ===
-            writer.println(); // separation line
+            writer.println(); 
             for (Connection c : connections) {
                 if (c.toIdx == -1) {
                     writer.println("$" + c.from.originalName + ".output" + (c.fromIdx + 1) + " -> $" + c.to.originalName + " (status)");
@@ -1683,4 +1647,5 @@ public class gui4 extends JFrame {
             new gui4().setVisible(true);
         });
     }
+
 }

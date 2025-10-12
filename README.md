@@ -14,7 +14,7 @@ A visual block-based programming interface that enables users to create, connect
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/ACTREC-frontend.git
+git clone https://github.com/tanishasenapati13/ACTREC-frontend.git
 cd ACTREC-frontend
 npm install
 npm start

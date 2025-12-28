@@ -7,8 +7,6 @@ A visual block-based programming interface that enables users to create, connect
 ## Prerequisites
 
 - **Java** (JDK 8 or higher) - Required
-- **VS Code** (Optional) - Recommended for development
-
 ---
 
 ## Installation

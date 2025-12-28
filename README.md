@@ -13,11 +13,23 @@ A visual block-based programming interface that enables users to create, connect
 
 ## Installation
 
+Follow the steps below to clone the repository and run the application locally using VS Code:
+
+1)Open VS Code, create a new window, and select Clone Repository.
+
+2)Paste the following GitHub repository link when prompted:
 ```bash
-git clone https://github.com/tanishasenapati13/ACTREC-frontend.git
-cd ACTREC-frontend
+https://github.com/tanishasenapati13/ACTREC-frontend
+```
+
+3)Choose or create a local folder where the repository will be cloned.
+
+4)Open the integrated terminal in VS Code.
+
+5)Execute the following commands:
+```bash
 javac gui4.java
-java gui4.java
+java gui4
 ```
 
 ---

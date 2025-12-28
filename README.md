@@ -16,8 +16,8 @@ A visual block-based programming interface that enables users to create, connect
 ```bash
 git clone https://github.com/tanishasenapati13/ACTREC-frontend.git
 cd ACTREC-frontend
-npm install
-npm start
+javac gui4.java
+java gui4.java
 ```
 
 ---
